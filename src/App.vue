@@ -1,12 +1,22 @@
 <template>
   <div class="app">
-    <UserSelection v-if="!selectedUser" :users="users" :selectUser="selectUser" />
+    <UserSelection
+      v-if="!selectedUser"
+      :users="users"
+      :selectUser="selectUser"
+    />
 
     <div v-else class="chat-container">
       <Sidebar :otherUsers="otherUsers" :openChat="openChat" />
 
-      <ChatWindow :activeChatUser="activeChatUser" :filteredMessages="filteredMessages" v-model:newMessage="newMessage"
-        :selectedUser="selectedUser" :getUserName="getUserName" :sendMessage="sendMessage" />
+      <ChatWindow
+        v-if="activeChatUser"
+        :activeChatUser="activeChatUser"
+        :filteredMessages="filteredMessages"
+        @sendMessage="sendMessage"
+        :selectedUser="selectedUser"
+        :getUserName="getUserName"
+      />
     </div>
   </div>
 </template>
@@ -29,7 +39,6 @@ export default {
   setup() {
     const selectedUser = ref(null);
     const activeChatUser = ref(null);
-    const newMessage = ref("");
     const messages = ref({});
 
     const initMessages = () => {
@@ -50,8 +59,8 @@ export default {
       activeChatUser.value = user;
     };
 
-    const sendMessage = () => {
-      if (!newMessage.value.trim() || !activeChatUser.value) return;
+    const sendMessage = (newMessage) => {
+      if (!activeChatUser.value) return;
 
       const chatId = generateChatId(
         selectedUser.value.id,
@@ -62,11 +71,10 @@ export default {
         id: Date.now(),
         from: selectedUser.value.id,
         to: activeChatUser.value.id,
-        text: newMessage.value,
+        text: newMessage,
         timestamp: new Date().toISOString(),
       });
       messages.value[chatId] = chatMessages;
-      newMessage.value = "";
 
       storeMessages();
     };
@@ -99,7 +107,6 @@ export default {
       selectedUser,
       activeChatUser,
       otherUsers,
-      newMessage,
       filteredMessages,
       selectUser,
       openChat,
